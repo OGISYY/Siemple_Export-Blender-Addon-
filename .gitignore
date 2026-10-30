@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+dist/
+*.zip
+*.blend1
+.vscode/
+.idea/

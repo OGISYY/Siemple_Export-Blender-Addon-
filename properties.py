@@ -1,26 +1,35 @@
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import PropertyGroup
-from .utils import get_operator_presets, get_preset_index, preset_enum_items_refs
+from .utils import get_operator_presets, get_preset_index, set_preset
 
-class Properties(PropertyGroup):
-    prefix : StringProperty(name="Prefix", default="")
-    suffix : StringProperty(name="Suffix", default="")
+
+class SIMPLEEXPORT_PG_properties(PropertyGroup):
+    prefix: StringProperty(name="Prefix", default="")
+    suffix: StringProperty(name="Suffix", default="")
 
     export_path: StringProperty(
         name="Directory",
-        description="Path to export",
-        default="Path",
-        subtype='DIR_PATH'  
+        description="Folder to export to. '//' means the folder of the .blend file",
+        default="//",
+        subtype='DIR_PATH'
     )
 
-    apply_modifiers : BoolProperty(name="Apply Modifiers", default=False)
-    # apply_transform: BoolProperty(name="Apply Transform", default=False)
+    apply_modifiers: BoolProperty(
+        name="Apply Modifiers",
+        description="Apply modifiers to the exported meshes",
+        default=False
+    )
+    apply_transform: BoolProperty(
+        name="Apply Transform",
+        description="Bake space transform into object data (FBX only)",
+        default=False
+    )
 
     object_types: EnumProperty(
         name="Object Types",
         options={"ENUM_FLAG"},
-        description="Object Selection",
+        description="Object types to export",
         items=[
             ('MESH', "Mesh", "", 1),
             ('CURVE', "Curve", "", 2),
@@ -33,11 +42,10 @@ class Properties(PropertyGroup):
             ('CAMERA', "Camera", "", 512),
         ],
         default={'MESH'}
-        
     )
 
     file_format: EnumProperty(
-        name="Format:",
+        name="Format",
         description="Which file format to export to",
         items=[
             ("OBJ", "Wavefront (.obj)", "", 7),
@@ -66,38 +74,33 @@ class Properties(PropertyGroup):
         ],
         default="SELECTED"
     )
+
     #! Rare Use
     obj_preset: StringProperty(default='NO_PRESET')
     obj_preset_enum: EnumProperty(
         name="Preset",
         options={'SKIP_SAVE'},
+        description="Use export settings from a preset.\n(Create in the export settings from the File > Export > Wavefront (.obj))",
         items=lambda self, context: get_operator_presets('wm.obj_export'),
         get=lambda self: get_preset_index('wm.obj_export', self.obj_preset),
-        set=lambda self, value: setattr(
-            self, 'obj_preset',
-            preset_enum_items_refs['wm.obj_export'][value][0]
-        ),
+        set=lambda self, value: set_preset(self, 'obj_preset', 'wm.obj_export', value),
     )
     fbx_preset: StringProperty(default='NO_PRESET')
     fbx_preset_enum: EnumProperty(
-        name="Preset", options={'SKIP_SAVE'},
+        name="Preset",
+        options={'SKIP_SAVE'},
         description="Use export settings from a preset.\n(Create in the export settings from the File > Export > FBX (.fbx))",
         items=lambda self, context: get_operator_presets('export_scene.fbx'),
         get=lambda self: get_preset_index('export_scene.fbx', self.fbx_preset),
-        set=lambda self, value: setattr(
-            self, 'fbx_preset', preset_enum_items_refs['export_scene.fbx'][value][0]),
+        set=lambda self, value: set_preset(self, 'fbx_preset', 'export_scene.fbx', value),
     )
 
 
-    
 def register():
-    if hasattr(bpy.types.Scene, "props"):
-        del bpy.types.Scene.props
-        print("Reload")
+    bpy.utils.register_class(SIMPLEEXPORT_PG_properties)
+    bpy.types.Scene.simple_export = bpy.props.PointerProperty(type=SIMPLEEXPORT_PG_properties)
 
-    bpy.utils.register_class(Properties)
-    bpy.types.Scene.props = bpy.props.PointerProperty(type=Properties)
 
 def unregister():
-    bpy.utils.unregister_class(Properties)
-    del bpy.types.Scene.props
+    del bpy.types.Scene.simple_export
+    bpy.utils.unregister_class(SIMPLEEXPORT_PG_properties)

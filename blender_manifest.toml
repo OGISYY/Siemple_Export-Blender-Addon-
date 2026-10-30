@@ -1,0 +1,29 @@
+schema_version = "1.0.0"
+
+id = "simple_export"
+version = "1.0.0"
+name = "Simple Export"
+tagline = "Batch export objects or collections to FBX or OBJ in one click"
+maintainer = "OGISY"
+type = "add-on"
+
+website = "https://github.com/OGISYY/Siemple_Export-Blender-Addon-"
+
+tags = ["Import-Export"]
+
+blender_version_min = "4.2.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
+
+[permissions]
+files = "Export FBX/OBJ files to the chosen directory"
+
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  "/.git/",
+  "/.gitignore",
+  "/dist/",
+  "/build.py",
+  "*.zip",
+]
